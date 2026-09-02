@@ -31,7 +31,15 @@ h1, .brand {
     padding: 0 1.5rem;
 }
 
+.navbar {
+    position: sticky;
+    background-color: var(--paper);
+}
+
 .site-header {
+    display: block;
+    position: sticky;
+    top: 0;
     border-bottom: 1px solid var(--line);
 }
 
