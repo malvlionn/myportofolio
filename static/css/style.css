@@ -216,7 +216,7 @@ h1, .brand {
 
 /* Agar cardnya bisa melayang dan memiliki bayangan */
 .edu-card:hover {
-    transform: translate(-4px);
+    transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(28, 25, 23, 0.09);
     border-color: var(--accent);
 }
@@ -285,7 +285,7 @@ h1, .brand {
     flex-shrink: 0;
     width: 95px;
     height: 95px;
-    background-color: var(---paper);
+    background-color: var(--paper);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     display: flex;
@@ -405,6 +405,123 @@ figcaption {
     margin-top: 0.6rem;
 }
 
+/* Styling untuk Section Awards */
+
+.section-awards {
+    padding: 4.5rem 0 5rem;
+}
+
+.horizontal-timeline {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr 1fr;
+    column-gap: 1.5rem;
+    row-gap: 0;
+    margin-top: 3rem;
+}
+
+.timeline-axis {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--ink);
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.timeline-entry {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+}
+
+.entry-left {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+}
+
+.entry-center {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+}
+
+.entry-right {
+    grid-column: 3;
+    grid-row: 2;
+    justify-content: flex-start;
+}
+
+.timeline-connector {
+    width: 2px;
+    height: 28px;
+    background-color: var(--ink);
+    align-self: center;
+    flex-shrink: 0;
+}
+
+.award-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.25rem 1.4rem;
+    width: 100%;
+}
+
+.award-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.award-date {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.award-title {
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: 1.15rem;
+    line-height: 1.25;
+    color: var(--ink);
+}
+
+.award-issuer {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.desc-award {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+.highlight-winner {
+    border-color: #ca8a04;
+    background-color: #Fffefb;
+}
+
+.highlight-winner:hover {
+    border-color: #b45309;
+}
+
+.badge-gold {
+    background-color: #fef08a !important;
+    color: #854d0e !important;
+    border: 1px solid #ca8a04;
+}
+
 @media (max-width: 600px) {
     .hero-grid {
         grid-template-columns: 1fr;
@@ -442,5 +559,33 @@ figcaption {
 
     .paper-thumbnail {
         height: 190px;
+    }
+
+    .horizontal-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        min-height: auto;
+        margin-top: 1.5rem;
+        padding-left: 2rem;
+    }
+
+    .timeline-axis {
+        top: 0;
+        bottom: 0;
+        left: 10px;
+        width: 3px;
+        height: 100%;
+        transform: none;
+    }
+
+    .entry-bottom,
+    .entry-top {
+        padding: 0;
+        justify-content: flex-start;
+    }
+
+    .timeline-connector {
+        display:none;
     }
 }
