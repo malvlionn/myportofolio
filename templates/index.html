@@ -55,49 +55,81 @@
         </section>
 
         <!--Education Section-->
-        <section class="hero" id="education">
-            <div class="container hero-grid">
-                <div class="hero-identity">
+        <section class="section-education" id="education">
+            <div class="container">
+                <header class="section-header">
                     <p class="hero-kicker">Education Record</p>
-                    <h1>Universitas Indonesia</h1>
-                </div>
-                <div class="hero-photo">
-                    <img class="avatar" src="/static/img/logofasilkom.png" alt="Logo of Universitas Indonesia">
-                </div>
-                <div class="hero-details">
-                    <p class="bio">Joining in 2025 by SNBT, I entered Universitas Indonesia as a Information System student from the Faculty of Computer Science.
-                        Since I was in high school, the way computer works has always been fascinating for me. Solving problems by typing some code and running it seems very rewarding.</p>
-                    <dl class="meta-list">
-                        <div class="meta-row">
-                            <dt>GPA</dt>
-                            <dd>3.98</dd>
+                    <h2 class="section-title">Academic Journey</h2>
+                </header>
+
+                <div class="flow-education">
+                    <!-- Elemen Pertama : Perjalanan dari SMA ke Universitas -->
+                    <article class="edu-row-split">
+
+                        <!-- SMA Kolese Kanisius -->
+                        <div class="edu-card institution-card card-cc">
+                            <div class="card-content">
+                                <header class="inner-card-header">
+                                    <time datetime="2022/2025" class="edu-period">2022 -- 2025</time>
+                                    <h3 class="institution-name">Kolese Kanisius</h3>
+                                </header>
+                                <span class="badge-grade">Cumulative Grade: 93.46</span>
+                                <p class="caption-edu">During high school, I am focusing on achieving high grades while deepening my interests in Mathematics and Informatics.</p>
+                            </div>
+                            <figure class="edu-logo-box">
+                                <img src="/static/img/cc.png" alt="Logo Kolese Kanisius" class="logo-edu">
+                            </figure>
                         </div>
-                        <div class="meta-row">
-                            <dt>Program</dt>
-                            <dd>S1 Sistem Informasi</dd>
+
+                        <!-- Pacil UI -->
+                        <div class="edu-card institution-card card-pacil">
+                            <figure class="edu-logo-box">
+                                <img src="/static/img/logofasilkom.png" alt="Logo Fasilkom UI" class="logo-edu">
+                            </figure>
+                            <div class="card-content text-right">
+                                <header class="inner-card-header">
+                                    <time datetime="2025" class="edu-period">2025 -- Now</time>
+                                    <h3 class="institution-name">Universitas Indonesia</h3>
+                                </header>
+                                <span class="badge-grade">GPA: 3.98</span>
+                                <p class="caption-edu">During my university studies, I had the opportunity to delve deeper into information systems, business management, and other computer science subjects.</p>
+                            </div>
                         </div>
-                    </dl>
-                </div>
-            </div>
-            <div class="container hero-grid">
-                <div class="hero-identity">
-                    <h1>Kolese Kanisius</h1>
-                </div>
-                <div class="hero-photo">
-                    <img class="avatar" src="/static/img/logocc.png" alt="Logo of Canisius College">
-                </div>
-                <div class="hero-details">
-                    <p class="bio">The times I've spent in this place is simply not enough. 3 years was just too short to experience it all; brotherhood, resilience, and 4C1L core values.</p>
-                    <dl class="meta-list">
-                        <div class="meta-row">
-                            <dt>NPM</dt>
-                            <dd>2506591753</dd>
+                    </article>
+
+                    <!-- Pencapaian Akademik di SMA -->
+                    <article class="edu-card honors-card">
+                        <header class="card-heading-simple">
+                            <h3>Academic Honors</h3>
+                        </header>
+                        <ul class="honors-list">
+                            <li><strong>Summa Cum Laude</strong> in Odd Academic Year 2024/2025</li>
+                            <li><strong>Summa Cum Laude</strong> in Even Academic Year 2023/2024</li>
+                            <li><strong>Magna Cum Laude</strong> in Odd Academic Year 2023/2024</li>
+                            <li><strong>Summa Cum Laude</strong> in Even Academic Year 2022/2023</li>
+                            <li><strong>Magna Cum Laude</strong> in Odd Academic Year 2022/2023</li>
+                        </ul>
+                    </article>
+
+                    <!-- Research Project di SMA -->
+                    <article class="edu-card research-card">
+                        <div class="research-text">
+                            <header class="card-heading-simple">
+                                <h3>Research Project</h3>
+                            </header>
+                            <p class="research-summary">
+                                Trial Design of A Solar Tracking Device Based on Arduino Uno to Maximize the Electrical Power Output from Solar Panels
+                            </p>
+                            <ul class="research-highlights">
+                                <li>Addressed the inefficiency of static solar panels by designing a device that allows the solar panels to continuously adjust their angle to the sun</li>
+                                <li>Developed and implemented an Arduino-based solar tracking system that aims to significantly increase power output by ensuring optimal alignment with sunlight.</li>
+                            </ul>
                         </div>
-                        <div class="meta-row">
-                            <dt>Program</dt>
-                            <dd>S1 Sistem Informasi</dd>
-                        </div>
-                    </dl>
+                        <figure class="paper-preview">
+                            <img src="/static/img/rp sma.jpeg" alt="Halaman Awal Karya Tulis Ilmiah" class="paper-thumbnail">
+                            <figcaption>Research Paper Documentation</figcaption>
+                        </figure>
+                    </article>
                 </div>
             </div>
         </section>

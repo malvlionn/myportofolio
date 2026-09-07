@@ -180,6 +180,231 @@ h1, .brand {
     border-top: 1px solid var(--line);
 }
 
+/* Styling untuk section education */
+
+/* Styling untuk bagian header dan container */
+.section-education {
+    padding: 4.5rem 0 5rem;
+}
+
+.section-header {
+    margin-bottom: 2.5rem;
+}
+
+.section-title {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.1;
+    color: var(--ink);
+}
+
+.flow-education {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Styling untuk card dan efek ketika on-hover */
+.edu-card {
+    background-color: #ffffff;
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    box-shadow: 0 4px 12px rgba(28, 25, 23, 0.04);
+
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+/* Agar cardnya bisa melayang dan memiliki bayangan */
+.edu-card:hover {
+    transform: translate(-4px);
+    box-shadow: 0 12px 24px rgba(28, 25, 23, 0.09);
+    border-color: var(--accent);
+}
+
+/* Baris pertama untuk SMA dan Univ */
+.edu-row-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.institution-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.inner-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.institution-name {
+    font-size: 1.35rem;
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    color: var(--ink);
+    line-height: 1.2;
+}
+
+.edu-period {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-dark);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.badge-grade {
+    display: inline-block;
+    background-color: rgba(217, 93, 57, 0.1);
+    color: var(--accent-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius);
+    width: fit-content;
+}
+
+.caption-edu {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+/* Styling untuk logo SMA dan UI */
+.edu-logo-box {
+    flex-shrink: 0;
+    width: 95px;
+    height: 95px;
+    background-color: var(---paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem;
+    margin: 0;
+}
+
+.logo-edu {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.text-right {
+    text-align: right;
+    align-items: flex-end;
+}
+
+/* Bagian Pencapaian Akademik */
+.card-heading-simple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.card-heading-simple h3 {
+    font-size: 1.25rem;
+    font-family:  "Space Grotesk", -apple-system, sans-serif;
+    color: var(--ink);
+}
+
+.badge-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: var(--paper);
+    border: 1px solid var(--line);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius);
+    color: var(--text-muted);
+}
+
+.honors-list {
+    padding-left: 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.honors-list li {
+    margin-bottom: 0.5rem;
+}
+
+.honors-list strong {
+    color: var(--ink);
+}
+
+/* Baris Research Project */
+.research-card {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+.research-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.research-summary {
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.research-highlights {
+    padding-left: 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.research-highlights li {
+    margin-bottom: 0.4rem;
+}
+
+.paper-preview {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.paper-thumbnail {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 2px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--accent);
+    transition: transform 0.25s ease;
+}
+
+.research-card:hover .paper-thumbnail {
+    transform: scale(1.02);
+}
+
+figcaption {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.6rem;
+}
+
 @media (max-width: 600px) {
     .hero-grid {
         grid-template-columns: 1fr;
@@ -195,5 +420,27 @@ h1, .brand {
 
     .social-links {
         justify-content: flex-start;
+    }
+
+    /* Tambahan untuk responsiveness */
+    .edu-row-split {
+        grid-template-columns: 1fr;
+    }
+
+    .card-pacil {
+        flex-direction: row-reverse;
+    }
+
+    .card-pacil .text-right {
+        text-align: left;
+        align-items: flex-start;
+    }
+
+    .research-card {
+        grid-template-columns: 1fr;
+    }
+
+    .paper-thumbnail {
+        height: 190px;
     }
 }
