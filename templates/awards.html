@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awards & Achievements - {{ name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="precconect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
+            <nav>
+                <a href="{% url 'main:show_main' %}">Profile</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
+                <a href="{% url 'main:show_awards' %}">Awards</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="section-awards" id="awards" style="padding: 4rem 0;">
+            <div class="container">
+                <header class="section-header" style="margin-bottom: 2.5rem;">
+                    <p class="hero-kicker">Honors & Competitions</p>
+                    <h1 class="section-title">Awards & Achievements</h1>
+                </header>
+
+                <div class="experience-grid">
+                    {% for award in award_list %}
+                        <article class="edu-card award-card {% if award.is_winner %}highlight-winner{% endif %}">
+                            <header class="award-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <time class="award-date">{{ award.date }}</time>
+                                <span class="badge-tag {% if award.is_winner %}badge-gold{% endif %}">{{ award.tier }}</span>
+                            </header>
+                            <h2 class="award-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">{{ award.title }}</h2>
+                            <p class="award-issuer" style="color: #64748b; font-size: 0.9rem; margin-bottom: 0.75rem;">{{ award.issuer }}</p>
+                            <p class="desc-award" style="line-height: 1.5;">
+                                {{ award.description }}
+                            </p>
+                            {% if award.certificate_url %}
+                                <div style="margin-top: 1rem;">
+                                    <a href="{{ award.certificate_url }}" target="_blank" rel="noopener noreferrer" style="font-size: 0.85rem; font-weight: 600; color: #2563eb; text-decoration: underline;">
+                                        Lihat Sertifikat &rarr;
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </article>
+                    {% empty %}
+                        <p class="empty-state">
+                            Belum ada penghargaan atau prestasi yang ditambahkan.
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+        </div>
+    </footer>
+</body>
+</html>"
+</head>
+</html>
