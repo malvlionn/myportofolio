@@ -96,36 +96,6 @@ Ketika layout timeline sempat patah, AI mengabaikan inkonsistensi penamaan (HTML
 
 ---
 
-### AI Disclosure & Critical Reflection (Tugas 2)
-
-* **Model/Tools yang Digunakan:** Google Gemini (Advanced/Flash)
-
----
-
-#### 1. Cakupan Penggunaan & Contoh Prompt Reflektif
-
-Dalam pengerjaan Tugas 2, saya menggunakan AI bukan sebagai jalan pintas untuk menyalin kode secara mentah, melainkan sebagai *thought partner* dalam merancang arsitektur Model-View-Template (MVT), menyusun skenario pengujian unit test yang komprehensif, serta memvalidasi kepatuhan alur kerja *version control* terhadap *best practices* rekayasa perangkat lunak.
-
-Beberapa contoh interaksi terarah yang berfokus pada analisis arsitektural dan pemecahan masalah:
-
-1. **Pemindahan Komponen Statis ke Model MVT:**
-> *"Bagaimana best practice perancangan arsitektur MVT dalam mengekstraksi komponen data statis yang berulang pada halaman utama (seperti Awards & Achievements) menjadi model dinamis tersendiri, sekaligus mempertahankan hierarki visual CSS yang sudah ada?"*
-* **Tujuan:** Menganalisis kelayakan pemisahan entitas antarmuka statis menjadi model Django yang modular dan mandiri, serta memastikan bahwa skema field pada model `Award` (seperti penanda `is_winner` dan tanggal) dapat dipetakan secara akurat tanpa merusak konsistensi antarmuka.
-
-2. **Penerapan *Atomic Commits* dan *Staging Boundary* pada Git:**
-> *"Bagaimana strategi penerapan atomic commits dan penentuan staging boundary yang ideal sepanjang siklus pengembangan fitur MVT di Django agar riwayat commit tetap modular, bertahap, dan mencerminkan progres per lapisan arsitektur?"*
-* **Tujuan:** Menentukan pemisahan batas kerja yang tepat untuk setiap commit (skema database & migrasi &rarr; logika view & routing &rarr; template & integrasi navigasi &rarr; unit tests) agar riwayat log Git tidak menumpuk menjadi satu commit monolitik di akhir pengerjaan.
-
-3. **Manajemen Integritas Histori Git (*Commit Correction*):**
-> *"Apa pendekatan standar dalam Git untuk memperbaiki berkas migrasi atau konfigurasi yang tertinggal pada commit lokal tanpa merusak alur histori kerja, serta bagaimana kriteria pemilihan antara git reset --soft dengan commit --amend?"*
-* **Tujuan:** Memahami mekanisme modifikasi commit lokal secara bersih sebelum dipush ke repositori jarak jauh, serta memahami mitigasi agar proses push ke server deployment PWS tidak dijalankan saat aplikasi masih dalam kondisi belum stabil.
-
-4. **Kepatuhan Arsitektur dan Penegakan *Separation of Concerns*:**
-> *"Mengapa pada hasil rancangan awal markup template baru masih terdapat deklarasi inline CSS, dan bagaimana strategi refaktor yang tepat agar seluruh presentasi visual dikembalikan sepenuhnya ke stylesheet eksternal?"*
-* **Tujuan:** Mengkritisi pemisahan tanggung jawab antara dokumen markup HTML dengan presentasi CSS agar kode tetap bersih, mudah dirawat, dan tidak melanggar prinsip *Separation of Concerns*.
-
----
-
 ### AI Disclosure & Critical Reflection
 
 * **Model/Tools yang Digunakan:** Google Gemini
