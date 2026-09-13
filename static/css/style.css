@@ -643,3 +643,14 @@ figcaption {
     font-size: 0.85rem;
     font-weight: 600;
 }
+
+.award-cert-container {
+    margin-top: 1rem;
+}
+
+.award-cert-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: underline;
+}
