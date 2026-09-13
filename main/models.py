@@ -24,3 +24,21 @@ class Experience(models.Model):
     @property
     def is_ongoing(self):
         return self.ended_at is None
+
+class Award(models.Model):
+    # Model untuk menyimpan daftar penghargaan yang sebelumnya ada di section Profile
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    issuer = models.CharField(max_length=255)
+    tier = models.CharField(max_length=100, default='National Finalist')
+    date = models.CharField(max_length=100)
+    description = models.TextField()
+    certificate_url = models.URLField(blank=True, null=True)
+    is_winner = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.issuer}"
