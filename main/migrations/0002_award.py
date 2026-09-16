@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('title', models.CharField(max_length=255)),
                 ('issuer', models.CharField(max_length=255)),
-                ('tier', models.CharField(default='National Finalist', max_length=100)),
+                ('tier', models.CharField(max_length=100)),
                 ('date', models.CharField(max_length=100)),
                 ('description', models.TextField()),
                 ('certificate_url', models.URLField(blank=True, null=True)),

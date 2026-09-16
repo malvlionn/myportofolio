@@ -1,32 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Awards & Achievements - {{ name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
-            <nav>
-                <a href="{% url 'main:show_main' %}">Profile</a>
-                <a href="{% url 'main:show_experience' %}">Experience</a>
-                <a href="{% url 'main:show_awards' %}">Awards</a>
-            </nav>
-        </div>
-    </header>
+{% extends "base.html" %}
 
+{% block meta %}
+    <title>Awards - {{ name }}</title>
+{% endblock meta %}
+
+{% block content %}
     <main>
         <section class="section-awards" id="awards">
             <div class="container">
                 <header class="section-header">
                     <p class="hero-kicker">Honors & Competitions</p>
                     <h1 class="section-title">Awards & Achievements</h1>
+                    
+                    <!-- Tombol Tambah Award -->
+                    <div style="margin: 1rem 0;">
+                        <a href="{% url 'main:create_award' %}" class="button">
+                            + Tambah Penghargaan
+                        </a>
+                    </div>
+
+                    <!-- Form Pencarian (Filter Title) -->
+                    <form method="get" action="{% url 'main:show_awards' %}" class="search-form" style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
+                        <input type="text" 
+                               name="title" 
+                               value="{{ title_query }}" 
+                               placeholder="Cari berdasarkan judul penghargaan..." 
+                               style="padding: 0.6rem; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px;">
+                        <button type="submit" class="button">Cari</button>
+                        {% if title_query %}
+                            <a href="{% url 'main:show_awards' %}" class="button button-secondary">Reset</a>
+                        {% endif %}
+                    </form>
                 </header>
 
                 <div class="experience-grid">
@@ -41,6 +45,7 @@
                             <p class="desc-award">
                                 {{ award.description }}
                             </p>
+                            
                             {% if award.certificate_url %}
                                 <div class="award-cert-container">
                                     <a href="{{ award.certificate_url }}" target="_blank" rel="noopener noreferrer" class="award-cert-link">
@@ -48,21 +53,17 @@
                                     </a>
                                 </div>
                             {% endif %}
+
+                            <!-- Memuat Tombol & Modal Hapus -->
+                            {% include "components/award_delete_modal.html" with award=award %}
                         </article>
                     {% empty %}
                         <p class="empty-state">
-                            Belum ada penghargaan atau prestasi yang ditambahkan.
+                            Belum ada penghargaan atau prestasi yang cocok dengan pencarian Anda.
                         </p>
                     {% endfor %}
                 </div>
             </div>
         </section>
     </main>
-
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
-        </div>
-    </footer>
-</body>
-</html>
+{% endblock content %}
