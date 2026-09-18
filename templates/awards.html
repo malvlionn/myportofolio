@@ -8,54 +8,61 @@
     <main>
         <section class="section-awards" id="awards">
             <div class="container">
-                <header class="section-header">
+                <header class="section-header" style="margin-bottom: 0;">
                     <p class="hero-kicker">Honors & Competitions</p>
                     <h1 class="section-title">Awards & Achievements</h1>
-                    
-                    <!-- Tombol Tambah Award -->
-                    <div style="margin: 1rem 0;">
-                        <a href="{% url 'main:create_award' %}" class="button">
-                            + Tambah Penghargaan
-                        </a>
-                    </div>
+                </header>
 
-                    <!-- Form Pencarian (Filter Title) -->
-                    <form method="get" action="{% url 'main:show_awards' %}" class="search-form" style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
+                <!-- Toolbar Terpadu Awards -->
+                <div class="awards-toolbar">
+                    <a href="{% url 'main:create_award' %}" class="button">
+                        + Tambah Penghargaan
+                    </a>
+
+                    <form method="get" action="{% url 'main:show_awards' %}" class="search-bar">
                         <input type="text" 
                                name="title" 
                                value="{{ title_query }}" 
-                               placeholder="Cari berdasarkan judul penghargaan..." 
-                               style="padding: 0.6rem; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px;">
+                               placeholder="Cari berdasarkan judul..." 
+                               class="search-input-styled">
                         <button type="submit" class="button">Cari</button>
                         {% if title_query %}
                             <a href="{% url 'main:show_awards' %}" class="button button-secondary">Reset</a>
                         {% endif %}
                     </form>
-                </header>
+                </div>
 
+                <!-- Grid Kartu Penghargaan -->
                 <div class="experience-grid">
                     {% for award in award_list %}
-                        <article class="edu-card award-card {% if award.is_winner %}highlight-winner{% endif %}">
-                            <header class="award-header">
-                                <time class="award-date">{{ award.date }}</time>
-                                <span class="badge-tag {% if award.is_winner %}badge-gold{% endif %}">{{ award.tier }}</span>
-                            </header>
-                            <h2 class="award-title">{{ award.title }}</h2>
-                            <p class="award-issuer">{{ award.issuer }}</p>
-                            <p class="desc-award">
-                                {{ award.description }}
-                            </p>
-                            
-                            {% if award.certificate_url %}
-                                <div class="award-cert-container">
-                                    <a href="{{ award.certificate_url }}" target="_blank" rel="noopener noreferrer" class="award-cert-link">
-                                        Lihat Sertifikat &rarr;
-                                    </a>
-                                </div>
-                            {% endif %}
+                        <article class="edu-card experience-card-item {% if award.is_winner %}highlight-winner{% endif %}">
+                            <div class="experience-card-body">
+                                <header class="award-header">
+                                    <time class="award-date">{{ award.date }}</time>
+                                    <span class="badge-tag {% if award.is_winner %}badge-gold{% endif %}">{{ award.tier }}</span>
+                                </header>
+                                <h2 class="experience-title-text">{{ award.title }}</h2>
+                                <p class="award-issuer">{{ award.issuer }}</p>
+                                <p class="desc-award">
+                                    {{ award.description }}
+                                </p>
+                                
+                                {% if award.certificate_url %}
+                                    <div class="media-link-container">
+                                        <a href="{{ award.certificate_url }}" target="_blank" rel="noopener noreferrer" class="award-cert-link">
+                                            Lihat Sertifikat &rarr;
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
 
-                            <!-- Memuat Tombol & Modal Hapus -->
-                            {% include "components/award_delete_modal.html" with award=award %}
+                            <!-- Footer Aksi: Tombol Berdampingan Rapi -->
+                            <div class="card-actions-row">
+                                <a href="{% url 'main:update_award' award.id %}" class="button button-secondary button-sm">
+                                    Ubah
+                                </a>
+                                {% include "components/award_delete_modal.html" with award=award %}
+                            </div>
                         </article>
                     {% empty %}
                         <p class="empty-state">

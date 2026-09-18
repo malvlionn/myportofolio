@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block meta %}
+    <title>Tambah Pengalaman - {{ name }}</title>
+{% endblock meta %}
+
+{% block content %}
+    <main>
+        <section class="section-awards">
+            <div class="container">
+                <header class="section-header">
+                    <p class="hero-kicker">Experience Entry</p>
+                    <h1 class="section-title">Tambah Pengalaman Baru</h1>
+                </header>
+
+                <form method="post" class="award-form">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.erros %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {%  endfor %}
+                    <div class="form-actions">
+                        <button type="submit" class="button">Tambah Pengalaman Baru</button>
+                        <a href="{% url 'main:show_experience' %}" class="button button-secondary">Batal</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}
