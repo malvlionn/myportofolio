@@ -17,19 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from main.views import(
-    show_main,
-    show_experience,
-    show_awards,
-    create_award,
-)
-
-app_name = 'main'
-
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("main.urls")),
-    path("experience/", show_experience, name="show_experience"),
-    path("awards/", show_awards, name="show_awards"),
-    path("awards/add/", create_award, name="create_award"),
 ]
