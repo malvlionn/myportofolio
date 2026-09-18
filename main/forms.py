@@ -1,6 +1,6 @@
-from django.forms import ModelForm, TextInput, Textarea, URLInput, CheckboxInput
+from django.forms import ModelForm, TextInput, Textarea, URLInput, CheckboxInput, DateInput, DateTimeField, Select
 
-from main.models import Award
+from main.models import Award, Experience
 
 class AwardForm(ModelForm):
     class Meta:
@@ -62,4 +62,51 @@ class AwardForm(ModelForm):
                 }
             ),
             "is_winner": CheckboxInput(),
+        }
+
+class ExperienceForm(ModelForm):
+    ended_at = DateTimeField(
+        required=False,
+        label="Bulan dan Tahun Berakhir (Kosongkan jika masih berlangsung)",
+        widget=DateInput(format="%Y-%m", attrs={"type": "month"},),
+        input_formats=["%Y-%m"],
+    )
+
+    class Meta:
+        model = Experience
+        fields = [
+            "title",
+            "category",
+            "description",
+            "thumbnail",
+            "ended_at",
+        ]
+
+        labels = {
+            "title": "Judul Posisi atau Peran",
+            "category": "Kategori Pengalaman",
+            "description": "Deskripsi Tanggung Jawab dan Kontribusi",
+            "thumbnail": "Tautan Dokumentasi atau Media (Opsional)",
+            "ended_at": "Bulan dan Tahun Berakhir",
+        }
+
+        widgets = {
+            "title": TextInput(
+                attrs={
+                    "placeholder": "Contoh: Staff Editorial Marketing COMPFEST 18",
+                    "maxlength": 255,
+                }
+            ),
+            "category": Select(),
+            "description": Textarea(
+                attrs={
+                    "placeholder": "Jelaskan tanggung jawab utama dan kontribusi Anda dalam kegiatan tersebut",
+                    "rows": 4,
+                }
+            ),
+            "thumbnail": URLInput(
+                attrs={
+                    "placeholder": "https://example.com/thumbnail.png",
+                }
+            ),
         }
