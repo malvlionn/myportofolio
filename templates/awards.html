@@ -15,9 +15,11 @@
 
                 <!-- Toolbar Terpadu Awards -->
                 <div class="awards-toolbar">
-                    <a href="{% url 'main:create_award' %}" class="button">
-                        + Tambah Penghargaan
-                    </a>
+                    {% if user.is_superuser %}
+                        <a href="{% url 'main:create_award' %}" class="button">
+                            + Tambah Penghargaan
+                        </a>
+                    {% endif %}
 
                     <form method="get" action="{% url 'main:show_awards' %}" class="search-bar">
                         <input type="text" 
@@ -56,13 +58,18 @@
                                 {% endif %}
                             </div>
 
+                            {% include "components/award_star.html" with award=award %}
+                            {% if user.is_superuser %}
                             <!-- Footer Aksi: Tombol Berdampingan Rapi -->
                             <div class="card-actions-row">
                                 <a href="{% url 'main:update_award' award.id %}" class="button button-secondary button-sm">
                                     Ubah
                                 </a>
-                                {% include "components/award_delete_modal.html" with award=award %}
+                                {% if user.is_superuser %}
+                                    {% include "components/award_delete_modal.html" with award=award %}
+                                {% endif %}
                             </div>
+                            {% endif %} 
                         </article>
                     {% empty %}
                         <p class="empty-state">
