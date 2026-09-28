@@ -52,6 +52,7 @@ def show_experience(request):
         "name": "Malvin Lionard",
         "experience_list": experience_list,
         "selected_category": selected_category,
+        "is_editor": is_editor_user(request.user),
 
     }
     return render(request, "experience.html", context)
@@ -76,7 +77,7 @@ def create_experience(request):
 
 @login_required(login_url="/login/")
 def update_experience(request, experience_id):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or is_editor_user(request.user)):
         raise PermissionDenied
     
     experience = get_object_or_404(Experience, pk=experience_id)
@@ -134,6 +135,7 @@ def show_awards(request):
         "name": "Malvin Lionard",
         "award_list": awards_list,
         "title_query": title_query,
+        "is_editor": is_editor_user(request.user),
     }
     return render(request, "awards.html", context)
 
@@ -157,7 +159,7 @@ def create_award(request):
 
 @login_required(login_url="/login/")
 def update_award(request, award_id):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or is_editor_user(request.user)):
         raise PermissionDenied
     
     award = get_object_or_404(Award, pk=award_id)
@@ -211,7 +213,8 @@ def login_user(request):
     if request.method == "POST" and form.is_valid():
         user = form.get_user()
         login(request, user)
-        response = redirect("main:show_main")
+        next_url = request.GET.get("next") or request.POST.get("next")
+        response = redirect(next_url) if next_url else redirect("main:show_main")
         response.set_cookie('last_login', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return response
 
@@ -253,3 +256,6 @@ def toggle_star_award(request, award_id):
             award.starred_by.add(request.user)
 
     return redirect("main:show_awards")
+
+def is_editor_user(user):
+    return user.is_authenticated and user.groups.filter(name='Editor').exists()
