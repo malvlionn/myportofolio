@@ -34,7 +34,8 @@ def get_experience_json(request):
     if category_query:
         experiences = experiences.filter(category=category_query)
 
-    experiences_json = serializers.serialize("json", experiences, use_natural_foreign_keys=True)
+    experiences_json = serializers.serialize("json", experiences, use_natural_foreign_keys=True),
+    
     return HttpResponse(experiences_json, content_type="application/json")
 
 def show_experience(request):
