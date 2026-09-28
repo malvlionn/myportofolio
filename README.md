@@ -205,3 +205,9 @@ Rancangan awal keluaran AI sempat menyisipkan banyak atribut `style=""` pada ele
 Saat menerapkan deserialisasi data JSON di view `show_experience`, AI sempat mereferensikan queryset secara langsung. Mengingat bahwa `serializers.deserialize()` mengembalikan generator `DeserializedObject`, saya melakukan penyesuaian melalui *list comprehension* `[item.object for item in deserialized_data]` agar pemanggilan metode model seperti `get_category_display` dan properti `is_ongoing` di template tetap berfungsi normal tanpa error.
 * **Menghapus Duplikasi Routing pada Proyek:**
 Saya mengaudit konfigurasi URL di `portofolio/urls.py` dan mendeteksi adanya rute ganda untuk `experience/` dan `awards/` yang didefinisikan di luar `main.urls`. Saya merapikan berkas tersebut secara manual agar delegasi routing terpusat bersih ke modul aplikasi `main`.
+
+### Tugas 4
+
+### AI Disclosure
+
+Pada pengerjaan Tugas 4 ini, saya tidak menggunakan perangkat Generative AI (seperti Google Gemini, ChatGPT, Claude, GitHub Copilot, maupun model bahasa besar lainnya) untuk menghasilkan kode, merancang arsitektur logika, ataupun menyelesaikan permasalahan teknis. Seluruh baris kode backend, penyesuaian template, pengelolaan hak akses, dan konfigurasi basis data diselesaikan secara mandiri melalui materi perkuliahan. Saya mengerjakan Tugas 4 ini mengikuti Tutorial 4 yang ada di website PBP.
