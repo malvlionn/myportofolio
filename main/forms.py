@@ -1,4 +1,6 @@
 from django.forms import ModelForm, TextInput, Textarea, URLInput, CheckboxInput, DateInput, DateTimeField, Select
+from django.core.exceptions import ValidationError
+from django.utils.html import strip_tags
 
 from main.models import Award, Experience
 
@@ -63,6 +65,24 @@ class AwardForm(ModelForm):
             ),
             "is_winner": CheckboxInput(),
         }
+        
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError("Nama penghargaan tidak boleh hanya berisi tag HTML.")
+        return title
+
+    def clean_issuer(self):
+        return strip_tags(self.cleaned_data["issuer"]).strip()
+
+    def clean_tier(self):
+        return strip_tags(self.cleaned_data["tier"]).strip()
+
+    def clean_date(self):
+        return strip_tags(self.cleaned_data["date"]).strip()
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
 
 class ExperienceForm(ModelForm):
     ended_at = DateTimeField(

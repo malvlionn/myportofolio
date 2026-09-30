@@ -4,8 +4,9 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse, request
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from main.models import Experience, Award
 from main.forms import AwardForm, ExperienceForm
@@ -28,34 +29,53 @@ def show_main(request):
 
 # Experience
 def get_experience_json(request):
+    search_query = request.GET.get("search", "").strip()
     category_query = request.GET.get("category", "").strip()
-    experiences = Experience.objects.all()
+    
+    experiences = Experience.objects.prefetch_related('starred_by').all()
 
+    # Filter berdasarkan pencarian nama/posisi jika diisi
+    if search_query:
+        experiences = experiences.filter(title__icontains=search_query)
+
+    # Filter berdasarkan kategori jika dipilih
     if category_query:
         experiences = experiences.filter(category=category_query)
 
-    experiences_json = serializers.serialize("json", experiences, use_natural_foreign_keys=True),
-    
-    return HttpResponse(experiences_json, content_type="application/json")
+    data = []
+    for experience in experiences:
+        starred_users = experience.starred_by.all()
+        is_starred = request.user in starred_users if request.user.is_authenticated else False
+        starred_by_names = ", ".join([u.username for u in starred_users])
+        ended_at_str = experience.ended_at.strftime("%B %Y") if experience.ended_at else ""
+
+        data.append({
+            "pk": str(experience.id),
+            "fields": {
+                "title": experience.title,
+                "description": experience.description,
+                "category": experience.category,
+                "category_display": experience.get_category_display(),
+                "thumbnail": experience.thumbnail or "",
+                "is_ongoing": experience.is_ongoing,
+                "ended_at": ended_at_str,
+                "star_count": starred_users.count(),
+                "is_starred": is_starred,
+                "starred_by_names": starred_by_names,
+            }
+        })
+
+    return JsonResponse(data, safe=False)
 
 def show_experience(request):
-    json_response = get_experience_json(request)
-
-    deserialized_data = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-
-    experience_list = [item.object for item in deserialized_data]
     selected_category = request.GET.get("category", "").strip()
 
     context = {
         "name": "Malvin Lionard",
-        "experience_list": experience_list,
         "selected_category": selected_category,
         "is_editor": is_editor_user(request.user),
-
     }
+
     return render(request, "experience.html", context)
 
 @login_required(login_url="/login/")
@@ -114,29 +134,44 @@ def delete_experience(request, experience_id):
 # Award
 def get_awards_json(request):
     title_query = request.GET.get("title", "").strip()
-    awards = Award.objects.all()
+    awards = Award.objects.prefetch_related('starred_by').all()
 
     if title_query:
         awards = awards.filter(title__icontains=title_query)
 
-    awards_json = serializers.serialize("json", awards, use_natural_foreign_keys=True)
-    return HttpResponse(awards_json, content_type="application/json")
+    data = []
+    for award in awards:
+        starred_users = award.starred_by.all()
+        is_starred = request.user in starred_users if request.user.is_authenticated else False
+        starred_by_names = ", ".join([u.username for u in starred_users])
+
+        data.append({
+            "pk": str(award.id),
+            "fields": {
+                "title": award.title,
+                "issuer": award.issuer,
+                "tier": award.tier,
+                "date": award.date,
+                "description": award.description,
+                "certificate_url": award.certificate_url or "",
+                "is_winner": award.is_winner,
+                "star_count": starred_users.count(),
+                "is_starred": is_starred,
+                "starred_by_names": starred_by_names,
+            }
+        })
+
+    return JsonResponse(data, safe=False)
+
 
 def show_awards(request):
-    json_response = get_awards_json(request)
-
-    awards = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    awards_list = [award.object for award in awards]
     title_query = request.GET.get("title", "").strip()
-    
+
     context = {
         "name": "Malvin Lionard",
-        "award_list": awards_list,
         "title_query": title_query,
         "is_editor": is_editor_user(request.user),
+        "form": AwardForm(),
     }
     return render(request, "awards.html", context)
 
@@ -157,6 +192,25 @@ def create_award(request):
         "form": form,
     }
     return render(request, "create_award.html", context)
+
+@require_POST
+def create_award_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan penghargaan."},
+            status=403,
+        )
+
+    form = AwardForm(request.POST)
+
+    if form.is_valid():
+        award = form.save()
+        return JsonResponse(
+            {"message": "Penghargaan berhasil ditambahkan.", "pk": str(award.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 @login_required(login_url="/login/")
 def update_award(request, award_id):
@@ -203,7 +257,7 @@ def register(request):
         return redirect("main:login")
 
     context = {
-        "name": "Malvin",
+        "name": "Malvin Lionard",
         "form": form,
     }
     return render(request, "register.html", context)
