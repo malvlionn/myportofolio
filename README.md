@@ -39,29 +39,18 @@ Beberapa contoh interaksi spesifik yang berfokus pada konsep dan pemecahan masal
 
 1. **Evaluasi Struktur Semantik & Rubrik Penilaian:**
 > *"pada langkah 1, itu banyak div yang keliatannya menumpuk itu sebenernya gapapa kah? gimana cara untuk mempersingkat dan mengoptimalkan div bertumpuk ini?"*
-
-
 * **Tujuan:** Menguji apakah rancangan awal markup berpotensi memicu *div soup* dan memastikan struktur dokumen benar-benar memanfaatkan elemen semantik HTML5 seperti `<article>`, `<header>`, dan `<time>` agar sesuai standar penilaian.
-
 
 2. **Pemahaman Logika Git & Best Practice Version Control:**
 > *"jelaskan konsep git add dan commit, terutama untuk bagian branching dan conventional commitsnya."*
-
-
 * **Tujuan:** Memahami perbedaan mendasar antara men-stage berkas secara selektif per fitur (*atomic commit*) dibandingkan men-stage seluruh direktori kerja, kapan waktu yang tepat mengikutsertakan aset gambar baru bersamaan dengan berkas HTML, memahami cara kerja branching di GitHub commits, serta aturan penulisan conventional commits.
-
 
 3. **Diferensiasi Environment Remote Git (Origin vs PWS):**
 > *"jelaskan perbedaan antara push origin dan push pws, lalu jelaskan juga kondisi-kondisi ketika kita melakukan keduanya jika berada dalam suatu branch tertentu."*
-
-
 * **Tujuan:** Memahami perbedaan peran arsitektur antara remote repository kolaboratif/versi kode (origin di GitHub) dengan server live deployment (pws), serta memahami alur bahwa branch fitur yang belum matang tidak boleh langsung dikirim ke server produksi PWS.
-
 
 4. **Penyesuaian Hierarki Visual dan Aksentuasi:**
 > *"gimana konsep styling di css untuk atribut dari bordernya, bagian yang mana yang perlu saya tambahkan/ubah?"*
-
-
 * **Tujuan:** Mengetahui *selector* CSS yang tepat untuk memberikan pembeda visual (*gold border*) khusus pada kartu pencapaian juara pertama tanpa merusak efek transisi kartu lainnya.
 
 ---
@@ -75,6 +64,7 @@ Solusi awal AI menggunakan pendekatan *padding* kaku (`calc(260px + 12px)`) untu
 * **Menyelesaikan *Class Mismatch* Secara Mandiri:**
 Ketika layout timeline sempat patah, AI mengabaikan inkonsistensi penamaan (HTML menggunakan `horizontal-timeline`, sedangkan CSS menargetkan `.timeline-horizontal`). Saya merevisi nama kelas tersebut, serta memastikan seluruh *media query* untuk layar seluler (< 600px) bertransisi mulus dari alur zig-zag ke timeline yang vertikal satu kolom tanpa menimbulkan *horizontal scrolling*.
 
+---
 
 ### Tugas 2
 
@@ -135,6 +125,8 @@ Ketika mengimplementasikan pengujian di `main/tests.py`, script pengujian sempat
 * **Menghindari Pola *Monolithic Commit*:**
 AI awalnya menyajikan seluruh berkas modifikasi secara bersamaan dalam satu panduan besar yang berisiko mendorong pembuatan satu commit tunggal di akhir. Saya secara aktif memecah pengerjaan menjadi tahapan terpisah, memverifikasi fungsionalitas per bagian (migrasi database, routing view, template DTL, unit testing), dan melakukan commit atomik secara bertahap sebelum melakukan push akhir ke GitHub dan PWS.
 
+---
+
 ### Tugas 3
 
 1. Alasan kita menggunakan `ModelForm` pada Django daripada membuat form HTML secara manual adalah:
@@ -193,6 +185,7 @@ Beberapa contoh interaksi spesifik yang berfokus pada konsep dan pemecahan masal
 4. **Penerapan *Atomic Commits* pada Alur Git:**
 > *"Biar riwayat commit di Git keliatan bertahap dan gak numpuk jadi satu commit di akhir, checkpoint apa aja yang ideal per lapisannya (dari forms, view logic/routing, template refactoring, sampe UI form)? Tolong bikinin breakdown commit atomik pake konvensi conventional commits."*
 * **Tujuan:** Merancang pembagian batas *commit* kerja yang logis per fitur fungsional agar riwayat repositori mencerminkan proses pengembangan inkremental yang terstruktur.
+
 ---
 
 #### 2. Analisis Kritis Keterbatasan AI & Intervensi Mandiri
@@ -206,8 +199,79 @@ Saat menerapkan deserialisasi data JSON di view `show_experience`, AI sempat mer
 * **Menghapus Duplikasi Routing pada Proyek:**
 Saya mengaudit konfigurasi URL di `portofolio/urls.py` dan mendeteksi adanya rute ganda untuk `experience/` dan `awards/` yang didefinisikan di luar `main.urls`. Saya merapikan berkas tersebut secara manual agar delegasi routing terpusat bersih ke modul aplikasi `main`.
 
+---
+
 ### Tugas 4
 
 ### AI Disclosure
 
 Pada pengerjaan Tugas 4 ini, saya tidak menggunakan perangkat Generative AI (seperti Google Gemini, ChatGPT, Claude, GitHub Copilot, maupun model bahasa besar lainnya) untuk menghasilkan kode, merancang arsitektur logika, ataupun menyelesaikan permasalahan teknis. Seluruh baris kode backend, penyesuaian template, pengelolaan hak akses, dan konfigurasi basis data diselesaikan secara mandiri melalui materi perkuliahan. Saya mengerjakan Tugas 4 ini mengikuti Tutorial 4 yang ada di website PBP.
+
+---
+
+### Tugas 5
+
+1. Debouncing adalah teknik optimasi pemrograman yang menunda pemanggilan suatu fungsi (misalnya pemanggilan `fetch()` ke endpoint pencarian) sampai jeda waktu tertentu berlalu tanpa ada pemicu (*event*) baru dari pengguna. Jika pengguna memicu *event* kembali sebelum jeda waktu tersebut habis, *timer* yang sedang berjalan akan dibatalkan (`clearTimeout`) dan dihitung ulang dari awal.
+
+Teknik ini sangat penting diterapkan pada fitur pencarian berbasis AJAX karena:
+- Mencegah *Request Flooding*: Tanpa debouncing, setiap karakter yang diketikkan pengguna pada *event* `input` akan langsung menembakkan satu HTTP *request* ke server. Mengetikkan kata dengan 10 karakter berarti mengirimkan 10 permintaan jaringan secara beruntun.
+- Mengurangi Beban Komputasi Server dan Basis Data: Operasi pencarian teks di backend (seperti pencarian `icontains` pada Django ORM) memakan sumber daya komputasi yang cukup intensif. Debouncing memastikan server hanya memproses *query* saat pengguna benar-benar sudah berhenti mengetik.
+- Mencegah Terjadinya *Race Conditions* (*Stale Data*): Karena adanya variasi latensi jaringan, *request* pencarian awal yang berisi sedikit karakter bisa saja selesai lebih lambat dibandingkan *request* akhir. Tanpa debouncing dan kontrol pembatalan (seperti `AbortController`), respons usang berpotensi menimpa data yang lebih baru di antarmuka web sehingga hasil pencarian menjadi tidak akurat.
+
+2. Fungsi dari penggunaan `await` ketika menggunakan `fetch()` adalah untuk menunda atau menjeda (*pause*) eksekusi baris kode berikutnya di dalam fungsi `async` secara non-blocking sampai *Promise* yang dikembalikan oleh `fetch()` selesai diproses (*resolved*) dan menghasilkan objek `Response` yang sesungguhnya.
+
+Hal yang akan terjadi jika kita tidak menggunakan `await` adalah:
+- Variabel yang menampung pemanggilan tersebut tidak akan berisi data atau objek respons HTTP, melainkan objek *Promise* dengan status pending (`Promise { <pending> }`).
+- Ketika kode mencoba mengakses properti atau metode respons (seperti `response.ok` atau `response.json()`), peramban akan melempar *runtime error* (misalnya `TypeError: response.json is not a function` atau mengembalikan `undefined`).
+- Baris kode untuk manipulasi DOM dan perakitan kartu HTML akan langsung dieksekusi sebelum data dari jaringan diterima oleh browser, sehingga perakitan kartu gagal dan data tidak akan pernah tampil di halaman.
+
+3. Serangan Cross-Site Scripting (XSS) adalah kerentanan keamanan web di mana penyerang berhasil menyisipkan skrip berbahaya (umumnya JavaScript) ke dalam halaman web yang kemudian dieksekusi oleh peramban pengguna lain. Serangan ini dapat dimanfaatkan penyerang untuk membaca cookie sesi, mencuri token CSRF, melakukan aksi manipulatif atas nama pengguna yang sedang masuk, hingga merusak tampilan antarmuka web (*defacement*).
+
+Data yang ditampilkan melalui AJAX/JavaScript jauh lebih rentan terhadap serangan ini dibandingkan data yang ditampilkan langsung melalui template Django karena:
+- Peniadaan Fitur *Auto-Escaping* Bawaan Django: Saat menggunakan *server-side template rendering* biasa (seperti `{{ experience.title }}`), mesin template Django secara otomatis mengubah karakter-karakter khusus HTML (`<`, `>`, `&`, `"`, `'`) menjadi entitas HTML (`&lt;`, `&gt;`, dll.) sehingga kode berbahaya selalu dirender sebagai teks biasa.
+- Penyisipan Langsung ke DOM via `innerHTML`: Pada alur AJAX, data JSON yang diterima sering dirakit ke dalam *template literal* JavaScript lalu dipasang ke elemen DOM menggunakan properti `.innerHTML`. Peramban secara inheren mengurai string tersebut sebagai kode markup aktif, sehingga jika data mengandung tag HTML atau event handler seperti `<img src="x" onerror="alert('XSS!')">`, skrip tersebut akan langsung dieksekusi oleh peramban.
+
+Oleh karena itu, pada implementasi AJAX diperlukan sistem pertahanan berlapis (*defense-in-depth*), yaitu melakukan *escaping* manual pada setiap nilai teks di sisi klien (menggunakan fungsi pembantu `escapeHtml`) serta membersihkan tag berbahaya di sisi server menggunakan `strip_tags` pada metode `clean_<field>()` di Django Form.
+
+---
+
+### AI Disclosure & Critical Reflection
+
+* **Model/Tools yang Digunakan:** Google Gemini
+
+---
+
+#### 1. Cakupan Penggunaan & Contoh Prompt Reflektif
+
+Saya memanfaatkan AI bukan untuk menghasilkan kode secara instan tanpa pemahaman, melainkan sebagai rekan diskusi untuk membedah arsitektur interaktivitas JavaScript, merancang penanganan form asinkron berbasis Fetch API, serta mengevaluasi celah keamanan *Cross-Site Scripting* (XSS) pada manipulasi DOM dinamis.
+
+Beberapa contoh interaksi spesifik yang berfokus pada konsep dan pemecahan masalah:
+
+1. **Sinkronisasi Filter Dropdown dan Debouncing Pencarian AJAX:**
+> *"Di halaman Experience kan ada dropdown kategori sama input pencarian teks. Gimana arsitektur JavaScript yang ideal biar pas user ngetik pencarian atau milih kategori, datanya sama-sama di-fetch lewat satu endpoint AJAX tanpa saling menimpa query parameter satu sama lain?"*
+* **Tujuan:** Menemukan pola perancangan *event handling* yang bersih menggunakan objek `URLSearchParams`, mengintegrasikan *event listener* `input` dan `change` ke dalam satu fungsi terpusat, serta menerapkan *debouncing* (300 ms) yang efisien.
+
+2. **Strategi Pertahanan Berlapis (*Defense-in-Depth*) terhadap Serangan XSS:**
+> *"Kenapa fungsi strip_tags di clean_title Django Form dibilang belum cukup buat ngejamin keamanan XSS sepenuhnya pas kita render data lewat innerHTML di JavaScript? Kenapa kita masih wajib bikin fungsi escapeHtml manual di sisi client?"*
+* **Tujuan:** Memahami secara mendalam perbedaan antara pembersihan data masuk (*input sanitization*) di backend dengan *output escaping* saat perakitan string DOM di peramban, serta potensi lolosnya karakter seperti tanda kutip pada atribut HTML jika *escaping* klien diabaikan.
+
+3. **Penanganan Validasi Error AJAX dan Integrasi Toast:**
+> *"Kalau form di modal ditolak sama server gara-gara validasi Django gagal atau CSRF token bermasalah, gimana cara JavaScript nangkep pesan error dari JsonResponse status 400 atau 403 terus nampilin pesannya langsung ke komponen toast tanpa reload halaman?"*
+* **Tujuan:** Memahami parsing struktur respons `form.errors.get_json_data()` dari Django menjadi deretan pesan kesalahan yang mudah dibaca pengguna melalui pemanggilan fungsi `showToast` bertipe `error`.
+
+4. **Penerapan *Milestone-Based Conventional Commits*:**
+> *"Bantu breakdown alur commit Git yang ideal untuk migrasi halaman statis ke AJAX penuh dong, biar commit-nya gak numpuk di akhir dan rapi per lapisan (backend, modal/CSS, frontend AJAX/XSS, dan dokumentasi) pake conventional commits."*
+* **Tujuan:** Menjaga kepatuhan *version control best practices* dengan membagi pekerjaan menjadi unit-unit perubahan atomik yang logis dan deskriptif.
+
+---
+
+#### 2. Analisis Kritis Keterbatasan AI & Intervensi Mandiri
+
+* **Mendiagnosis dan Mengoreksi Bug *Null Reference* pada Skrip DOM:**
+Pada kode awal `experience.html`, ditemukan kesalahan berupa pemanggilan `document.getElementById('search-input')` dan penambahan *event listener*, padahal elemen input tersebut belum ada di markup template lama. Hal ini menyebabkan galat `TypeError: Cannot read properties of null (reading 'addEventListener')` di konsol peramban yang mematikan seluruh eksekusi JavaScript. Saya mengintervensi dengan merestrukturisasi markup *toolbar* di `experience.html`, menambahkan elemen input pencarian teks dan tombol reset yang sesuai, serta memastikan semua elemen DOM yang ditargetkan benar-benar ada sebelum diikat dengan *event listener*.
+* **Mengoreksi Inkonsistensi Penamaan Atribut Model (`project_url` vs `thumbnail`):**
+Ketika menghasilkan skrip perakitan kartu di JavaScript, AI cenderung meniru persis atribut dari Tutorial 5 dengan memanggil `experience.project_url`. Padahal pada skema model `Experience` yang saya bangun di Tugas 3, atribut tautan media dinamai `thumbnail`. Saya mengoreksi pemetaan field JSON di `views.py` dan perakitan tautan di `buildExperienceCardElement()` agar merujuk pada `experience.thumbnail`, sehingga kartu menampilkan tautan dokumentasi dengan benar dan terhindar dari nilai `undefined`.
+* **Mengintegrasikan Pencarian Teks, Filter Kategori, dan Tombol Reset Secara Terpadu:**
+AI awalnya menyarankan penanganan terpisah antara filter form submit biasa dan pencarian teks AJAX. Saya mengintervensi dengan merombak alur tersebut menjadi fungsi terpadu `triggerFilter()`. Fungsi ini menggabungkan nilai pencarian teks dan pilihan kategori ke dalam `URLSearchParams`, mengontrol pembatalan request lama via `AbortController`, serta secara dinamis mengatur visibilitas tombol "Reset" sesuai status input pengguna.
+* **Menerapkan *Milestone Commit* Bertahap:**
+Menyadari kecenderungan saran AI yang menyajikan seluruh berkas secara serentak sehingga berisiko memicu *monolithic commit*, saya secara disiplin membagi proses pengerjaan menjadi empat *milestone* commit terpisah (`feat(backend)`, `feat(ui)`, `feat(frontend)`, dan `docs`) untuk memastikan riwayat pengembangan pada repositori Git tertata secara profesional.
