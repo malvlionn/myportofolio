@@ -29,16 +29,14 @@ def show_main(request):
 
 # Experience
 def get_experience_json(request):
-    search_query = request.GET.get("search", "").strip()
+    search_query = request.GET.get("search", request.GET.get("title", "")).strip()
     category_query = request.GET.get("category", "").strip()
     
     experiences = Experience.objects.prefetch_related('starred_by').all()
 
-    # Filter berdasarkan pencarian nama/posisi jika diisi
     if search_query:
         experiences = experiences.filter(title__icontains=search_query)
 
-    # Filter berdasarkan kategori jika dipilih
     if category_query:
         experiences = experiences.filter(category=category_query)
 
@@ -74,6 +72,7 @@ def show_experience(request):
         "name": "Malvin Lionard",
         "selected_category": selected_category,
         "is_editor": is_editor_user(request.user),
+        "form": ExperienceForm(),  # Sediakan instance form untuk modal popover
     }
 
     return render(request, "experience.html", context)
@@ -95,6 +94,25 @@ def create_experience(request):
         "form": form,
     }
     return render(request, "create_experience.html", context)
+
+@require_POST
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan pengalaman."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+
+    if form.is_valid():
+        experience = form.save()
+        return JsonResponse(
+            {"message": "Pengalaman berhasil ditambahkan.", "pk": str(experience.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 @login_required(login_url="/login/")
 def update_experience(request, experience_id):

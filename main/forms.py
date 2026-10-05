@@ -88,7 +88,7 @@ class ExperienceForm(ModelForm):
     ended_at = DateTimeField(
         required=False,
         label="Bulan dan Tahun Berakhir (Kosongkan jika masih berlangsung)",
-        widget=DateInput(format="%Y-%m", attrs={"type": "month"},),
+        widget=DateInput(format="%Y-%m", attrs={"type": "month"}),
         input_formats=["%Y-%m"],
     )
 
@@ -130,3 +130,15 @@ class ExperienceForm(ModelForm):
                 }
             ),
         }
+
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError("Judul pengalaman tidak boleh hanya berisi tag HTML.")
+        return title
+
+    def clean_description(self):
+        description = strip_tags(self.cleaned_data["description"]).strip()
+        if not description:
+            raise ValidationError("Deskripsi pengalaman tidak boleh hanya berisi tag HTML.")
+        return description
