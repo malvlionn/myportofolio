@@ -9,9 +9,9 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from main.models import Experience
-from main.permissions import IsPortfolioOwnerOrReadOnly
-from main.serializers import ExperienceSerializer
+from main.models import Experience, Award
+from main.permissions import IsPortfolioOwnerOrReadOnly, IsPortfolioOwnerOrEditorOrReadOnly
+from main.serializers import ExperienceSerializer, AwardSerializer
 
 @api_view(["GET", "HEAD", "POST"])
 @authentication_classes([SessionAuthentication])
