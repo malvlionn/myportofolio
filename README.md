@@ -275,3 +275,88 @@ Ketika menghasilkan skrip perakitan kartu di JavaScript, AI cenderung meniru per
 AI awalnya menyarankan penanganan terpisah antara filter form submit biasa dan pencarian teks AJAX. Saya mengintervensi dengan merombak alur tersebut menjadi fungsi terpadu `triggerFilter()`. Fungsi ini menggabungkan nilai pencarian teks dan pilihan kategori ke dalam `URLSearchParams`, mengontrol pembatalan request lama via `AbortController`, serta secara dinamis mengatur visibilitas tombol "Reset" sesuai status input pengguna.
 * **Menerapkan *Milestone Commit* Bertahap:**
 Menyadari kecenderungan saran AI yang menyajikan seluruh berkas secara serentak sehingga berisiko memicu *monolithic commit*, saya secara disiplin membagi proses pengerjaan menjadi empat *milestone* commit terpisah (`feat(backend)`, `feat(ui)`, `feat(frontend)`, dan `docs`) untuk memastikan riwayat pengembangan pada repositori Git tertata secara profesional.
+
+### Tugas 6
+
+1. REST (Representational State Transfer) adalah gaya arsitektur perancangan web API yang memperlakukan data sebagai *resource* yang dapat diidentifikasi secara unik menggunakan URI (Uniform Resource Identifier), memanfaatkan metode HTTP standar (GET, POST, PUT, PATCH, DELETE) untuk menyatakan tindakan operasi, serta bersifat *stateless* di mana server tidak menyimpan status interaksi klien antar-request.
+
+Alasan mengapa mengembalikan JSON saja belum cukup untuk menyebut sebuah API sebagai RESTful adalah:
+- JSON hanyalah Format Data (Representation Format): Mengembalikan format JSON hanyalah representasi data yang ditransmisikan. Sebuah API baru dapat dikategorikan RESTful jika mematuhi kaidah arsitektur REST, yaitu penamaan endpoint yang berorientasi pada kata benda resource (misalnya `/api/v1/awards/`, bukan kata kerja seperti `/api/v1/awards/get-all/` atau `/create-award/`), serta tindakan manipulasi data sepenuhnya diatur oleh HTTP Verbs.
+- Penggunaan Status Kode HTTP Semantik: API RESTful menggunakan kode status HTTP secara disiplin untuk merefleksikan hasil operasi (seperti 200 OK untuk pembacaan, 201 Created untuk penambahan, 204 No Content untuk penghapusan tanpa body, 400 Bad Request untuk kesalahan validasi input, 403 Forbidden untuk penolakan hak akses, dan 404 Not Found saat resource tidak ditemukan). Mengembalikan status 200 OK tetapi menyisipkan pesan error di dalam body JSON bukanlah praktik RESTful.
+- Negosiasi Konten (Content Negotiation): API RESTful mendukung penyesuaian format representasi berdasarkan header `Accept` yang dikirimkan klien, misalnya merender Browsable API HTML untuk peramban dan JSON mentah ketika diminta oleh skrip AJAX.
+
+Perbedaan PUT dan PATCH beserta contoh penggunaannya:
+- PUT (Full Replacement / Idempoten): Mengganti seluruh representasi resource target dengan representasi baru yang dikirimkan klien secara utuh. Klien wajib mengirimkan seluruh atribut field yang diperlukan model. Jika ada field opsional yang tidak disertakan, field tersebut akan dikosongkan atau diatur ke nilai default.
+  - *Contoh Penggunaan:* Saat melakukan sinkronisasi data penghargaan dari sistem eksternal secara komprehensif, di mana seluruh field (`title`, `issuer`, `tier`, `date`, `description`, `certificate_url`, `is_winner`) dikirimkan secara serentak untuk menimpa rekaman yang ada di basis data.
+- PATCH (Partial Update): Hanya memperbarui sebagian atribut tertentu pada resource tanpa memengaruhi atribut lainnya yang tidak disertakan dalam payload request.
+  - *Contoh Penggunaan:* Ketika pengguna dengan peran Editor hanya ingin memperbaiki kesalahan ketik pada judul penghargaan melalui modal edit ringan dengan mengirimkan payload `{"title": "Judul Baru"}`, sementara deskripsi, penyelenggara, dan tautan sertifikat lama tetap dipertahankan oleh server.
+
+2. Peran serializer pada Django REST Framework adalah sebagai penerjemah dan validator dua arah (*two-way pipeline*) antara tipe data kompleks model Django dengan representasi data terstruktur yang siap dikirimkan melalui jaringan (seperti JSON):
+- Serialisasi (Model Instance / QuerySet &rarr; Python Primitives / JSON): Mengubah objek model basis data ke dalam tipe data bawaan Python (dictionary, list) yang kemudian diproses oleh renderer DRF menjadi format JSON untuk dikirimkan sebagai HTTP Response.
+- Deserialisasi dan Validasi Data (JSON Input &rarr; Validated Data / Model Instance): Mengambil data masukan mentah dari request klien, memvalidasi kesesuaian tipe data dan batasan field, menjalankan sanitasi kustom melalui method `validate_<field>` (seperti pembersihan tag HTML via `strip_tags`), serta menyimpannya langsung ke database via `.save()`.
+
+Keuntungan menggunakan serializer dibandingkan merakit dictionary secara manual dengan `JsonResponse` (Tutorial 05):
+- Validasi Input Deklaratif dan Terpusat: Serializer secara otomatis memvalidasi tipe data, format URL, nilai null, serta menghasilkan pesan kesalahan yang terstruktur per field (`serializers.ValidationError`) tanpa perlu menulis pengecekan `if-else` manual yang repetitif di dalam view.
+- Penanganan Field Dinamis dan Read-Only: Mendukung `SerializerMethodField` untuk field kalkulasi dinamis (seperti `star_count` dan `is_starred` berbasis user yang sedang masuk), sekaligus mengunci atribut sensitif melalui `read_only_fields` agar tidak dapat dimanipulasi oleh payload request klien.
+- Pemisahan Tanggung Jawab (*Separation of Concerns*): Logika representasi dan validasi data terisolasi di dalam `serializers.py`, sehingga fungsi view di `api_views.py` tetap bersih, ramping, dan hanya berfokus pada alur kontrol HTTP serta penegakan hak akses.
+
+3. Perbedaan autentikasi dan otorisasi pada Django REST Framework:
+- Autentikasi (Authentication): Proses untuk memverifikasi dan membuktikan identitas pengguna yang membuat request (*"Siapa Anda?"*). Pada DRF, `SessionAuthentication` memeriksa cookie session Django untuk mengidentifikasi akun pengguna dan mengisi objek `request.user`.
+- Otorisasi (Authorization / Permissions): Proses penentuan apakah pengguna yang telah teridentifikasi memiliki hak yang sah untuk menjalankan tindakan tertentu (*"Apa yang boleh Anda lakukan?"*). Hal ini ditentukan oleh kelas permission (seperti `IsPortfolioOwnerOrEditorOrReadOnly`).
+
+Alasan hak akses harus diperiksa dengan permission class di server, bukan hanya dengan menyembunyikan tombol di template:
+- Keamanan Sisi Klien Bersifat Kosmetik: Menyembunyikan tombol tambah, ubah, atau hapus di antarmuka HTML hanyalah peningkatan pengalaman visual bagi pengguna (*UX*), bukan perlindungan keamanan.
+- Kerentanan Manipulasi Request Langsung: Penyerang atau pengguna biasa dapat dengan mudah mengirimkan request HTTP `POST`, `PUT`, `PATCH`, atau `DELETE` langsung ke endpoint API menggunakan alat seperti cURL, Postman, Fetch API via DevTools Console, atau skrip eksternal tanpa melalui tombol antarmuka web.
+- Penegakan Integritas Data di Tingkat Server: Permission class bertindak sebagai gerbang pengaman di lapisan backend. Jika pemeriksaan izin tidak ditegakkan di server, siapa pun yang mengetahui ID suatu objek dapat menghapus atau memodifikasi database secara ilegal.
+
+4. Permintaan yang mengubah data tetap memerlukan token CSRF ketika API memakai `SessionAuthentication` karena:
+- Mekanisme Cookie Otomatis: `SessionAuthentication` memanfaatkan cookie sesi (`sessionid`) yang disimpan di peramban. Ketika peramban mengirimkan request ke domain web kita, peramban secara otomatis akan menyertakan cookie tersebut, bahkan jika request dipicu oleh situs jahat pihak ketiga (*cross-site*).
+- Pencegahan Eksploitasi CSRF: Tanpa validasi token CSRF, situs berbahaya dapat memalsukan aksi berbahaya (seperti mengirim request `DELETE` untuk menghapus penghargaan) atas nama pengguna yang sedang masuk. Header `X-CSRFToken` memastikan bahwa request yang mengubah basis data benar-benar berasal dari antarmuka situs kita sendiri (*same-origin proof*).
+
+Alasan test yang memakai `force_authenticate` tidak cukup untuk membuktikan bahwa perlindungan CSRF berjalan:
+- `force_authenticate(user=user)` adalah utilitas pengujian internal DRF yang bekerja dengan cara langsung menyuntikkan objek pengguna ke `request.user` pada level framework pengujian.
+- Pemanggilan ini secara eksplisit **melewati (*bypasses*)** seluruh siklus penanganan autentikasi peramban yang sebenarnya, termasuk parsing cookie sesi dan evaluasi middleware `CsrfViewMiddleware`.
+- Akibatnya, pengujian yang hanya memakai `force_authenticate` tidak pernah mengeksekusi logika pemeriksaan token CSRF. Untuk memverifikasi bahwa perlindungan CSRF berfungsi sebagaimana mestinya di dunia nyata, pengujian harus menggunakan `APIClient(enforce_csrf_checks=True)` yang dipadukan dengan `client.login()`, lalu menguji penolakan (403 Forbidden) saat token absen serta penerimaan (201/200) saat token `X-CSRFToken` disertakan.
+
+---
+
+### AI Disclosure & Critical Reflection
+
+* **Model/Tools yang Digunakan:** Google Gemini
+
+---
+
+#### 1. Cakupan Penggunaan & Contoh Prompt Reflektif
+
+Saya memanfaatkan AI bukan untuk menghasilkan kode secara instan tanpa pemahaman, melainkan sebagai rekan diskusi untuk membedah arsitektur Django REST Framework, merancang hierarki hak akses berbasis peran pada API endpoint, serta memecahkan kendala teknis (*debugging*) pada validasi serializer dan suite pengujian otomatis.
+
+Beberapa contoh interaksi spesifik yang berfokus pada konsep dan pemecahan masalah:
+
+1. **Perancangan Serializer dan Pembersihan Tag HTML:**
+> *"Di AwardSerializer kan ada validasi teks pakai strip_tags buat field title sama description kayak clean_<field> di form sebelumnya. Gimana cara bikin serializer yang otomatis ngitung jumlah star sama status star user aktif, tapi field itu terkunci read-only biar gak bisa dipalsukan klien?"*
+* **Tujuan:** Memahami penggunaan `SerializerMethodField` yang membaca relasi `starred_by` dengan memanfaatkan `self.context.get('request')`, serta mengonfigurasi `read_only_fields` pada Meta serializer untuk mencegah eksploitasi data.
+
+2. **Penegakan Hak Akses Multi-Peran (4 Peran):**
+> *"Gimana cara menerapkan permission class IsPortfolioOwnerOrEditorOrReadOnly di API endpoint Awards biar pengunjung biasa cuma bisa baca, user login bisa star, Editor cuma bisa PUT/PATCH, dan Superuser bisa CRUD lengkap?"*
+* **Tujuan:** Memastikan pemisahan logika permission berbasis method HTTP (`SAFE_METHODS` vs mutasi data) dan keanggotaan grup (`Editor`) di tingkat server, bukan sekadar menyembunyikan tombol di template.
+
+3. **Diagnosa Kegagalan Test Validasi Sanitasi:**
+> *"Di test_validation APITestCase, kenapa assertion error dapet status 201 Created padahal ekspektasinya 400 Bad Request pas ngirim payload script alert? Bagian mana yang keliru dari fungsi strip_tags bawaan Django?"*
+* **Tujuan:** Mendiagnosis karakteristik kerja fungsi `strip_tags()` Django yang hanya membuang pembungkus tag tetapi mempertahankan isi teks anak dari elemen berpasangan, sehingga memahami mengapa pengujian sanitasi harus menggunakan void tag seperti `<img>`.
+
+4. **Integrasi AJAX In-Place Modal vs Halaman Terpisah:**
+> *"Di tugas diminta fitur update data via PUT/PATCH, opsinya bisa bikin modal edit baru atau ubah form update_award.html lama. Dari sisi arsitektur SPA dan rubrik penilaian interaktivitas, pendekatan mana yang lebih optimal dan gimana cara binding datanya via Fetch API?"*
+* **Tujuan:** Mengevaluasi trade-off desain UX antara manipulasi DOM in-place menggunakan popover modal edit terpisah dengan pengalihan halaman konvensional, demi mencapai pengalaman *zero page reload*.
+
+---
+
+#### 2. Analisis Kritis Keterbatasan AI & Intervensi Mandiri
+
+* **Mengoreksi Payload Pengujian XSS pada `test_validation`:**
+Saat merancang pengujian validasi masukan di `main/tests_api.py`, kode awal AI menyertakan payload `{"title": "<script>alert(1)</script>"}` dengan asumsi server akan mengembalikan status 400 Bad Request. Faktanya, fungsi `strip_tags()` bawaan Django menyisakan string `'alert(1)'` sehingga serializer menganggap input tersebut valid dan menghasilkan status 201 Created. Saya menganalisis masalah ini, memahami perilakunya, dan mengintervensi dengan mengganti payload uji menjadi void element `<img src="x" onerror="alert(1)">`. Dengan begitu, tag terhapus seutuhnya menjadi string kosong, memicu validasi serializer secara tepat, dan membuat seluruh unit test lulus dengan status `OK`.
+* **Menangani Normalisasi Input Checkbox Boolean dan URL Kosong:**
+Ketika data formulir dikirimkan melalui `FormData` pada modal, nilai checkbox yang dicentang bernilai string `'on'` atau `'true'`, dan field URL yang tidak diisi menghasilkan string kosong `""`. Serializer bawaan sempat melempar galat validasi tipe data URL dan boolean. Saya mengintervensi dengan menambahkan penanganan khusus pada metode `to_internal_value` di `AwardSerializer` untuk mengonversi string kosong menjadi `None` dan memetakan string `'on'` menjadi tipe boolean `True`.
+* **Mengimplementasikan Modal Edit In-Place untuk Mencegah Navigasi Halaman:**
+Saran awal sempat mempertahankan tombol "Ubah" yang mengarahkan pengguna ke halaman terpisah `update_award.html`. Saya menyadari bahwa berpindah halaman mencederai kenyamanan antarmuka dinamis berbasis AJAX. Saya secara mandiri membuat komponen popover baru `templates/components/award_edit_modal.html`, menghubungkannya dengan event delegation pada kartu penghargaan melalui fungsi `openEditModal()`, dan mengeksekusi request `PATCH` asinkron sehingga seluruh proses pengeditan data berjalan di satu layar tanpa reload dokumen.
+* **Menerapkan *Milestone Commit* Atomik yang Rapi:**
+Menyadari kecenderungan saran otomatis yang sering menggabungkan seluruh perubahan ke dalam satu langkah besar, saya secara disiplin membagi implementasi menjadi tahapan *atomic commit* berbasis konvensi *Conventional Commits* (`feat(api)`, `test(api)`, `feat(awards)`, `docs`), menjaga riwayat repositori tetap bersih dan mencerminkan progres bertahap sesuai rubrik.
