@@ -1,0 +1,66 @@
+<div id="edit-award-modal"
+     class="award-form-modal"
+     popover="auto"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="edit-award-modal-title">
+    <button type="button"
+            class="award-form-modal__backdrop"
+            popovertarget="edit-award-modal"
+            popovertargetaction="hide"
+            aria-label="Tutup form ubah penghargaan"></button>
+    <div class="award-form-modal__content">
+        <button type="button"
+                class="award-form-modal__close"
+                popovertarget="edit-award-modal"
+                popovertargetaction="hide"
+                aria-label="Tutup form ubah penghargaan">&times;</button>
+        <h2 id="edit-award-modal-title">Ubah Data Penghargaan</h2>
+        <form id="edit-award-form" class="award-form">
+            <input type="hidden" id="edit-award-id" name="id">
+
+            <div class="form-group">
+                <label for="edit-title">Judul Penghargaan</label>
+                <input type="text" id="edit-title" name="title" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-issuer">Penyelenggara / Institusi</label>
+                <input type="text" id="edit-issuer" name="issuer" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-tier">Tingkat / Kategori (mis. Nasional, Internasional)</label>
+                <input type="text" id="edit-tier" name="tier" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-date">Waktu / Tanggal</label>
+                <input type="text" id="edit-date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-description">Deskripsi</label>
+                <textarea id="edit-description" name="description" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-certificate-url">URL Sertifikat (Opsional)</label>
+                <input type="url" id="edit-certificate-url" name="certificate_url" placeholder="https://...">
+            </div>
+
+            <div class="form-group form-check" style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+                <input type="checkbox" id="edit-is-winner" name="is_winner" style="width: auto;">
+                <label for="edit-is-winner" style="margin-bottom: 0;">Pemenang Utama / Juara</label>
+            </div>
+
+            <div class="award-form-modal__actions" style="margin-top: 20px;">
+                <button type="button"
+                        class="button button-secondary"
+                        popovertarget="edit-award-modal"
+                        popovertargetaction="hide">Batal</button>
+                <button type="submit" class="button">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>

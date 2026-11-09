@@ -41,21 +41,21 @@ class PortofolioTest(TestCase):
         self.assertTrue(self.experience.is_ongoing)
 
     def test_experience_page(self):
-        response = self.client.get(reverse("main:show_experience"))
-
+        response = self.client.get(reverse('main:show_experience'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.description)
-        self.assertContains(response, "Part-Time")
-        self.assertContains(response, "Sedang berlangsung")
-        self.assertContains(response, f'href="{reverse("main:show_main")}"')
+        # Halaman HTML AJAX menyediakan container grid
+        self.assertContains(response, 'id="grid"')
+        
+        # Data judul sekarang diuji melalui endpoint JSON/API
+        api_response = self.client.get(reverse('api:experience-list'))
+        self.assertEqual(api_response.status_code, 200)
+        self.assertContains(api_response, self.experience.title)
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
-        response = self.client.get(reverse("main:show_experience"))
-
-        self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
+        response = self.client.get(reverse('main:show_experience'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Belum ada pengalaman yang cocok dengan kriteria pencarian Anda.")
 
     def test_completed_experience(self):
         self.experience.ended_at = timezone.now()
@@ -79,18 +79,17 @@ class PortofolioTest(TestCase):
         self.assertTrue(self.award.is_winner)
 
     def test_awards_page_renders_data_when_present(self):
-        response = self.client.get(reverse("main:show_awards"))
+        response = self.client.get(reverse('main:show_awards'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.award.title)
-        self.assertContains(response, self.award.issuer)
-        self.assertContains(response, self.award.tier)
-        self.assertContains(response, self.award.date)
-        self.assertContains(response, self.award.description)
-        self.assertContains(response, "badge-gold")
-        self.assertContains(response, "highlight-winner")
+        self.assertContains(response, 'id="grid"')
+
+        # Periksa data pada endpoint get_awards_json
+        json_response = self.client.get(reverse('main:get_awards_json'))
+        self.assertEqual(json_response.status_code, 200)
+        self.assertContains(json_response, self.award.title)
 
     def test_empty_awards_page(self):
         Award.objects.all().delete()
-        response = self.client.get(reverse("main:show_awards"))
+        response = self.client.get(reverse('main:show_awards'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Belum ada penghargaan atau prestasi yang ditambahkan.")
+        self.assertContains(response, "Belum ada penghargaan atau prestasi yang cocok dengan pencarian Anda.")

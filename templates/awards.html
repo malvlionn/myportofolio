@@ -13,7 +13,6 @@
                     <h1 class="section-title">Awards & Achievements</h1>
                 </header>
 
-                
                 <div class="awards-toolbar">
                     {% if user.is_superuser %}
                         <button type="button"
@@ -43,15 +42,25 @@
             </div>
         </section>
     </main>
+
     {% if user.is_superuser %}
         {% include "components/award_form_modal.html" %}
     {% endif %}
+
+    {% if user.is_superuser or is_editor %}
+        {% include "components/award_edit_modal.html" %}
+    {% endif %}
+
+    {% csrf_token %}
     <script>
-    // Konfigurasi
-    const BASE_AWARDS_ENDPOINT = "{% url 'main:get_awards_json' %}";
+    // Konfigurasi Endpoint REST API DRF
+    const BASE_AWARDS_ENDPOINT = "{% url 'api:award-list' %}";
+    const DETAIL_AWARD_ENDPOINT = "{% url 'api:award-detail' '00000000-0000-0000-0000-000000000000' %}";
+    const STAR_AWARD_ENDPOINT = "{% url 'api:award-star' '00000000-0000-0000-0000-000000000000' %}";
+
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
-    const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
-    let awardsAbortController;
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+    const IS_EDITOR = "{{ is_editor|default_if_none:False|yesno:'true,false' }}" === "true";
 
     // Elemen DOM
     const loadingState = document.getElementById('loading');
@@ -61,18 +70,22 @@
     const searchForm = document.getElementById('award-search-form');
     const searchInput = document.getElementById('search-input');
     const resetButton = document.getElementById('reset-search');
-    const SEARCH_DEBOUNCE_DELAY = 300;
-    let searchDebounceTimer;
+    const awardForm = document.getElementById('award-form');
+    const editAwardForm = document.getElementById('edit-award-form');
+    const editModal = document.getElementById('edit-award-modal');
 
-    // Menyembunyikan/Menampilkan section halaman
-    function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
-        loadingState.classList.toggle('hide', !showLoading);
-        errorState.classList.toggle('hide', !showError);
-        emptyState.classList.toggle('hide', !showEmpty);
-        gridContainer.classList.toggle('hide', !showGrid);
+    let awardsAbortController;
+    let searchDebounceTimer;
+    let currentAwardsData = [];
+
+    // Mengambil Cookie CSRF
+    function getCookie(name) {
+        const prefix = `${name}=`;
+        const cookie = document.cookie.split(';').map(v => v.trim()).find(v => v.startsWith(prefix));
+        return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
     }
 
-    // Mengubah karakter khusus HTML menjadi entity agar ditampilkan sebagai teks
+    // Sanitasi Teks HTML (Anti-XSS)
     function escapeHtml(value) {
         return String(value ?? '')
             .replaceAll('&', '&amp;')
@@ -81,20 +94,57 @@
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#39;');
     }
-    
-    // Membuat elemen card award
-    function buildAwardCardElement(item) {
-        const award = item.fields;
-        const awardId = item.pk;
 
+    function awardEndpoint(pattern, id) {
+        return pattern.replace('00000000-0000-0000-0000-000000000000', id);
+    }
+
+    function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+        loadingState.classList.toggle('hide', !showLoading);
+        errorState.classList.toggle('hide', !showError);
+        emptyState.classList.toggle('hide', !showEmpty);
+        gridContainer.classList.toggle('hide', !showGrid);
+    }
+
+    // Parsing Pesan Error dari Serializer DRF
+    function apiErrorMessage(data, status) {
+        if (!data || typeof data !== 'object') return `Permintaan gagal (HTTP ${status}).`;
+        if (data.detail) return data.detail;
+        const messages = Object.entries(data).map(([field, errors]) => {
+            const errText = Array.isArray(errors) ? errors.join(', ') : errors;
+            return `${field}: ${errText}`;
+        });
+        return messages.join(' | ') || `Gagal memproses permintaan (HTTP ${status}).`;
+    }
+
+    // Wrapper Pengiriman Request Mutasi (POST, PATCH, DELETE)
+    async function writeAward(url, method, payload) {
+        const headers = {
+            'Accept': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        };
+        if (payload !== undefined) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        const response = await fetch(url, {
+            method,
+            headers,
+            body: payload !== undefined ? JSON.stringify(payload) : undefined,
+        });
+
+        if (response.status === 204) return null;
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(apiErrorMessage(data, response.status));
+        }
+        return data;
+    }
+
+    // Merakit Kartu Penghargaan
+    function buildAwardCardElement(award) {
         const articleElement = document.createElement('article');
         articleElement.className = 'edu-card experience-card-item' + (award.is_winner ? ' highlight-winner' : '');
-
-        // Dummy UUID digunakan untuk digantikan oleh ID asli dari data JSON
-        const DUMMY = '00000000-0000-0000-0000-000000000000';
-        const editUrl = "{% url 'main:update_award' '00000000-0000-0000-0000-000000000000' %}".replace(DUMMY, awardId);
-        const deleteUrl = "{% url 'main:delete_award' '00000000-0000-0000-0000-000000000000' %}".replace(DUMMY, awardId);
-        const starUrl = "{% url 'main:toggle_star_award' '00000000-0000-0000-0000-000000000000' %}".replace(DUMMY, awardId);
 
         const badgeClass = award.is_winner ? ' badge-gold' : '';
 
@@ -112,23 +162,42 @@
             ? `Dibintangi oleh ${escapeHtml(award.starred_by_names)}`
             : "Jadilah yang pertama memberi star";
 
-        const deleteHtml = IS_SUPERUSER
-            ? `<form method="post" action="${deleteUrl}" class="form-inline-action">
-                    {% csrf_token %}
-                    <button type="submit" class="button button-danger button-sm"
-                            onclick="return confirm('Yakin ingin menghapus penghargaan ini?');">Hapus</button>
-                </form>`
+        const starButtonHtml = IS_AUTHENTICATED
+            ? `<button type="button"
+                       class="button button-star${isStarredClass}"
+                       data-action="star"
+                       data-id="${escapeHtml(award.id)}"
+                       title="${starTitle}">
+                   <span aria-hidden="true">★</span>
+                   ${starText}
+                   <span class="star-count">${award.star_count}</span>
+               </button>`
+            : `<a href="{% url 'main:login' %}" class="button button-star" title="Login untuk memberi star">
+                   <span aria-hidden="true">★</span> Star <span class="star-count">${award.star_count}</span>
+               </a>`;
+
+        const editButtonHtml = (IS_SUPERUSER || IS_EDITOR)
+            ? `<button type="button"
+                       class="button button-secondary button-sm"
+                       data-action="edit"
+                       data-id="${escapeHtml(award.id)}">Ubah</button>`
+            : '';
+
+        const deleteButtonHtml = IS_SUPERUSER
+            ? `<button type="button"
+                       class="button button-danger button-sm"
+                       data-action="delete"
+                       data-id="${escapeHtml(award.id)}">Hapus</button>`
             : '';
 
         const actionsHtml = (IS_SUPERUSER || IS_EDITOR)
             ? `<div class="card-actions-row">
-                    <a href="${editUrl}" class="button button-secondary button-sm">Ubah</a>
-                    ${deleteHtml}
+                    ${editButtonHtml}
+                    ${deleteButtonHtml}
                 </div>`
             : '';
 
-        // Komponen card
-        const completeCardHtml = `
+        articleElement.innerHTML = `
             <div class="experience-card-body">
                 <header class="award-header">
                     <time class="award-date">${escapeHtml(award.date)}</time>
@@ -140,24 +209,16 @@
                 ${certHtml}
             </div>
 
-            <form method="post" action="${starUrl}" class="star-form">
-                {% csrf_token %}
-                <button type="submit"
-                        class="button button-star${isStarredClass}"
-                        title="${starTitle}">
-                    <span aria-hidden="true">★</span>
-                    ${starText}
-                    <span class="star-count">${award.star_count}</span>
-                </button>
-            </form>
+            <div class="star-form">
+                ${starButtonHtml}
+            </div>
             ${actionsHtml}
         `;
 
-        articleElement.innerHTML = completeCardHtml;
         return articleElement;
     }
 
-    // Fetch data award
+    // Memuat Data dari API
     async function fetchAwards(searchQuery = "") {
         if (awardsAbortController) awardsAbortController.abort();
         awardsAbortController = new AbortController();
@@ -165,124 +226,187 @@
         try {
             displayPageSection({ showLoading: true });
 
-            const url = searchQuery
-                ? `${BASE_AWARDS_ENDPOINT}?title=${encodeURIComponent(searchQuery)}`
-                : BASE_AWARDS_ENDPOINT;
+            const url = new URL(BASE_AWARDS_ENDPOINT, window.location.origin);
+            if (searchQuery) url.searchParams.set('title', searchQuery);
 
             const response = await fetch(url, {
                 headers: { 'Accept': 'application/json' },
                 signal: awardsAbortController.signal,
             });
 
-            if (!response.ok) throw new Error('Failed to fetch data');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-            const awardData = await response.json();
+            currentAwardsData = await response.json();
 
-            if (awardData.length === 0) {
+            if (currentAwardsData.length === 0) {
                 displayPageSection({ showEmpty: true });
             } else {
-                gridContainer.innerHTML = '';
-                awardData.forEach(item => {
-                    gridContainer.appendChild(buildAwardCardElement(item));
-                });
+                gridContainer.replaceChildren(...currentAwardsData.map(buildAwardCardElement));
                 displayPageSection({ showGrid: true });
             }
         } catch (error) {
             if (error.name === 'AbortError') return;
-            console.error('Error loading awards:', error);
+            console.error('Error fetching awards:', error);
             displayPageSection({ showError: true });
         }
     }
 
-    function searchAwards() {
-        const query = searchInput.value.trim();
-        resetButton.classList.toggle('hide', query === '');
-        fetchAwards(query);
-    }
-
-    searchInput.addEventListener("input", function() {
-        clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(function() {
-            searchAwards();
-        }, SEARCH_DEBOUNCE_DELAY);
-    });
-
-    searchForm.addEventListener("submit", function(event) {
-        event.preventDefault();
-        clearTimeout(searchDebounceTimer);
-        searchAwards();
-    });
-
-    resetButton.addEventListener("click", function() {
-        clearTimeout(searchDebounceTimer);
-        searchInput.value = '';
-        searchAwards();
-    });
-
-    function closeAwardModal() {
-        const modal = document.getElementById("add-award-modal");
-        if (modal) modal.hidePopover();
-    }
-
-    const CREATE_AWARD_ENDPOINT = "{% url 'main:create_award_ajax' %}";
-    const awardForm = document.getElementById('award-form');
-
-    // Membaca nilai cookie, digunakan untuk mengambil token CSRF
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    // Mengirim data form ke server
+    // Menambah Penghargaan Baru (Superuser)
     async function addAward(event) {
         event.preventDefault();
-
-        const submitButton = awardForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
+        const submitBtn = awardForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
 
         try {
-            const response = await fetch(CREATE_AWARD_ENDPOINT, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                body: new FormData(awardForm),
-            });
+            const fd = new FormData(awardForm);
+            const payload = {
+                title: fd.get('title'),
+                issuer: fd.get('issuer'),
+                tier: fd.get('tier'),
+                date: fd.get('date'),
+                description: fd.get('description'),
+                certificate_url: fd.get('certificate_url') || '',
+                is_winner: fd.get('is_winner') === 'on' || fd.get('is_winner') === 'true',
+            };
 
-            const result = await response.json().catch(() => ({}));
-
-            if (response.ok) {
-                awardForm.reset();
-                closeAwardModal();
-                showToast('Berhasil', 'Penghargaan baru berhasil ditambahkan!', 'success');
-                fetchAwards(searchInput.value.trim());
-            } else {
-                const errorMessages = result.errors
-                    ? Object.values(result.errors).flat().map(error => error.message)
-                    : [result.message || `Terjadi kesalahan (status ${response.status}).`];
-                showToast('Gagal menambahkan penghargaan', errorMessages.join(' '), 'error');
-            }
+            await writeAward(BASE_AWARDS_ENDPOINT, 'POST', payload);
+            awardForm.reset();
+            const modal = document.getElementById('add-award-modal');
+            if (modal) modal.hidePopover();
+            showToast('Berhasil', 'Penghargaan baru berhasil ditambahkan.', 'success');
+            await fetchAwards(searchInput.value.trim());
         } catch (error) {
-            console.error('Error adding award:', error);
-            showToast('Gagal menambahkan penghargaan', 'Tidak dapat terhubung ke server. Silakan coba lagi.', 'error');
+            showToast('Gagal Menambah Penghargaan', error.message, 'error');
         } finally {
-            submitButton.disabled = false;
+            submitBtn.disabled = false;
         }
     }
 
+    // Menampilkan Modal Edit dan Mengisi Form
+    function openEditModal(awardId) {
+        const award = currentAwardsData.find(item => String(item.id) === String(awardId));
+        if (!award || !editAwardForm) return;
+
+        document.getElementById('edit-award-id').value = award.id;
+        document.getElementById('edit-title').value = award.title;
+        document.getElementById('edit-issuer').value = award.issuer;
+        document.getElementById('edit-tier').value = award.tier;
+        document.getElementById('edit-date').value = award.date;
+        document.getElementById('edit-description').value = award.description;
+        document.getElementById('edit-certificate-url').value = award.certificate_url || '';
+        document.getElementById('edit-is-winner').checked = Boolean(award.is_winner);
+
+        if (editModal && typeof editModal.showPopover === 'function') {
+            editModal.showPopover();
+        }
+    }
+
+    // Menyimpan Perubahan Edit (Superuser & Editor)
+    async function submitEditAward(event) {
+        event.preventDefault();
+        const submitBtn = editAwardForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+
+        const awardId = document.getElementById('edit-award-id').value;
+        const targetUrl = awardEndpoint(DETAIL_AWARD_ENDPOINT, awardId);
+
+        try {
+            const fd = new FormData(editAwardForm);
+            const payload = {
+                title: fd.get('title'),
+                issuer: fd.get('issuer'),
+                tier: fd.get('tier'),
+                date: fd.get('date'),
+                description: fd.get('description'),
+                certificate_url: fd.get('certificate_url') || '',
+                is_winner: document.getElementById('edit-is-winner').checked,
+            };
+
+            await writeAward(targetUrl, 'PATCH', payload);
+            if (editModal && typeof editModal.hidePopover === 'function') {
+                editModal.hidePopover();
+            }
+            showToast('Berhasil', 'Data penghargaan berhasil diperbarui.', 'success');
+            await fetchAwards(searchInput.value.trim());
+        } catch (error) {
+            showToast('Gagal Memperbarui Penghargaan', error.message, 'error');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Delegasi Event Klik pada Grid
+    gridContainer.addEventListener('click', async function(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
+
+        const action = button.dataset.action;
+        const awardId = button.dataset.id;
+
+        if (action === 'edit') {
+            openEditModal(awardId);
+            return;
+        }
+
+        if (action === 'delete') {
+            if (!window.confirm('Apakah Anda yakin ingin menghapus penghargaan ini?')) return;
+            button.disabled = true;
+            try {
+                await writeAward(awardEndpoint(DETAIL_AWARD_ENDPOINT, awardId), 'DELETE');
+                showToast('Sukses', 'Penghargaan berhasil dihapus.', 'success');
+                await fetchAwards(searchInput.value.trim());
+            } catch (error) {
+                showToast('Gagal Menghapus', error.message, 'error');
+            } finally {
+                button.disabled = false;
+            }
+            return;
+        }
+
+        if (action === 'star') {
+            button.disabled = true;
+            try {
+                await writeAward(awardEndpoint(STAR_AWARD_ENDPOINT, awardId), 'POST');
+                await fetchAwards(searchInput.value.trim());
+            } catch (error) {
+                showToast('Gagal Mengubah Star', error.message, 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+    });
+
+    // Event Listeners
     if (awardForm) {
         awardForm.addEventListener('submit', addAward);
     }
-    
-    // Start application
+    if (editAwardForm) {
+        editAwardForm.addEventListener('submit', submitEditAward);
+    }
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(function() {
+            resetButton.classList.toggle('hide', searchInput.value.trim() === '');
+            fetchAwards(searchInput.value.trim());
+        }, 300);
+    });
+
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        resetButton.classList.toggle('hide', searchInput.value.trim() === '');
+        fetchAwards(searchInput.value.trim());
+    });
+
+    resetButton.addEventListener('click', function() {
+        clearTimeout(searchDebounceTimer);
+        searchInput.value = '';
+        resetButton.classList.add('hide');
+        fetchAwards('');
+    });
+
+    // Inisialisasi awal
     fetchAwards(searchInput.value.trim());
     </script>
 {% endblock content %}
